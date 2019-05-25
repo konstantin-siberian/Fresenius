@@ -1,3 +1,4 @@
 - change icon of hospitals
 - make interface error stable -> e.g. if a target was not found
 - name of tab in browser
+- get right of patient_waypoints.nights -> replaced by `from_day to_day`

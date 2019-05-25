@@ -20,7 +20,7 @@ function first_non_zero_index(arr) {
 // waypoints in the user path. day 0: {origin: id, dest: id}
 // The function returns the last travel on that day since there
 // can be multiple travels per day
-function travelarray(nights) {
+function get_travelarray(nights) {
   // day 0 = day before the first night
   var num_travel_days = sum(nights) + 1;
   var init = first_non_zero_index(nights);
@@ -34,7 +34,7 @@ function travelarray(nights) {
     if (nights[waypoint_id + 1] == 0) { continue; }
     travel.push({'origin': waypoint_id, 'destination': waypoint_id + 1});
     for (var di = 1; di < nights[waypoint_id + 1]; ++di) {
-      travel.push({'origin': waypoint_id, 'destination': waypoint_id});
+      travel.push({'origin': waypoint_id + 1, 'destination': waypoint_id + 1});
     }
   }
   return travel;
@@ -56,20 +56,27 @@ function travelarray(nights) {
         return d;
       }
 
-      function map_longlatdistance(geocoder, origin, dests) {
+      function map_longlatdistance(origin, dests) {
         var distances = [];
         for (var i = 0; i < dests.length; ++i) {
-          distances.push(
+          distances.push({ 'dist' :
             longlatdistance(
               origin_loc.lng,
               origin_loc.lat,
               dests[i].lng,
               dests[i].lat
             )
-          );
+          , 'id' : i});
         }
         return distances;
       }
+
+function get_n_smallest(arr, n) {
+  // hopefully this is a copy
+  var arrtmp = arr;
+  arrtmp.sort(function(a, b) { return a.dist < b.dist; });
+  return arr.slice(0, n);
+}
 
       function all_distances_between(dirmatservice, origin, dests) {
         dirmatservice.getDistanceMatrix(
@@ -96,3 +103,27 @@ function travelarray(nights) {
         );
       }
 
+function contains(arr, el) {
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] == el) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function integrateTimeHandler(patient_waypoints, patient_properties, dirservice, dirdisp) {
+  console.log("[+]integrateTimeHandler()");
+  var tarr = get_travelarray(patient_waypoints.nights);
+  var treatmentdays = new Array();
+  for (var i = 0; i < tarr.length; ++i) {
+    if (contains(patient_properties.treatment_days,
+        (i + 7 - patient_properties.starting_day_offset) % 7)) {
+      treatmentdays.push({ 'traveldata' : tarr[i], 'day' : i});
+    }
+  }
+  console.log("[-]integrateTimeHandler()");
+
+  
+//  var distances = map_longlatdistances 
+}

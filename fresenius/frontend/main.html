@@ -132,6 +132,7 @@
         <input id="num-nights" type="text" placeholder="nights" />
       </div>
     </div>
+    <button type="button" id="h-integrate-button">Integrate Treatments</button>
     <div id="map"></div>
     <div id="infowindow-content">
       <img src="" width="16" height="16" id="place-icon" />
@@ -150,16 +151,16 @@
       var map;
       var patient_waypoints = {
         addresses: new Array(),
-        markers: new Array(),
-        dirdisp: new Array(),
         loc: new Array(),
         nights: new Array()
       };
       var directionsService;
       var directionsDisplay;
       // day 0 -> monday, day 1 -> tuesday, ...
-      var patient_properties = { treatment_days: [0, 2, 4] };
-
+      // day offset -> number of days from the first travel day to the next monday
+      var patient_properties = { 'treatment_days': [0, 2, 4] , 'starting_day_offset': 1};
+      var integrateTimeButton = document.getElementById("h-integrate-button");
+      integrateTimeButton.onclick = function() { integrateTimeHandler(patient_waypoints, patient_properties, directionsService, directionsDisplay); };
       function addr2wayptr(addrs) {
         var wayptrs = [];
         for (var i = 0; i < addrs.length; ++i) {
