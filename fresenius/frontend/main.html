@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple Markers</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="floating-panel">
+      <input id="address" type="textbox" value="Sydney, NSW">
+      <input id="submit" type="button" value="Geocode">
+    </div>
+    <div id="map"></div>
+    <script src="static/coordinates.js" type="text/javascript">
+    </script>
+    <script>
+
+      // This example adds a user-editable rectangle to the map.
+      // When the user changes the bounds of the rectangle,
+      // an info window pops up displaying the new bounds.
+
+      var map;
+      var patient_waypoints = { 'addresses' : new Array, 'markers' : new Array , 'dirdisp' : new Array};
+      var directionsService;
+      var directionsDisplay;
+
+      function mark_all_hospitals(hospitals_json, map) {
+        var vecs = [];
+        // VERY BAAAD; HARD CODED THE NUMBER OF HOSPITALS HERE
+        for (var i = 0; i < 338; ++i) {
+          var lat = hospitals_json.LATITUDE[String(i)];
+          var lon = hospitals_json.LONGITUDE[String(i)];
+          if (lat != null && lon != null) {
+            vecs.push({'lat' : lat,'lng' :  lon});
+          }
+        }
+        var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
+        for (var i = 0; i < vecs.length; ++i) { 
+          var marker = new google.maps.Marker({
+           position: vecs[i],
+           map: map,
+           title: 'hospital',
+           icon: image
+          });
+        }
+      }
+
+      function addr2wayptr(addrs) {
+        var wayptrs = [];
+        for (var i = 0; i < addrs.length; ++i) {
+          wayptrs.push({'location': addrs[i], 'stopover' : true});
+        }
+        return wayptrs;
+      }
+
+      function calculateAndDisplayRoute(dirservice, dirdisp, addresses) {
+        var wps = addr2wayptr(addresses.slice(1, addresses.length - 1));
+        var origin = addresses[0];
+        var destination = addresses[addresses.length - 1];
+        console.log("calculateAndDisplayRoute(), origin = ", origin, " destination = " ,destination);
+        dirservice.route({
+          origin: origin,
+          destination: destination,
+          travelMode: 'DRIVING',
+          waypoints: wps,
+        }, function(response, status) {
+          if (status === 'OK') {
+            dirdisp.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+      }
+
+      function initMap() {
+        console.log("initMap()");
+        directionsService = new google.maps.DirectionsService;
+        directionsDisplay = new google.maps.DirectionsRenderer;
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 44.5452, lng: -78.5389},
+          zoom: 9
+        });
+        mark_all_hospitals(hospitals_json, map);
+        directionsDisplay.setMap(map);
+        var geocoder = new google.maps.Geocoder();
+        document.getElementById('submit').addEventListener('click', function() {
+          geocodeAddressAndAddRoute(geocoder, map, directionsService, directionsDisplay);
+        });
+      }
+      // Show the new coordinates for the rectangle in an info window.
+
+      function geocodeAddressAndAddRoute(geocoder, resultsMap, dirservice, dirdisp) {
+        var address = document.getElementById('address').value;
+        patient_waypoints.addresses.push(address);
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === 'OK') {
+            resultsMap.setCenter(results[0].geometry.location);
+//            var marker = new google.maps.Marker({
+//              map: resultsMap,
+//              position: results[0].geometry.location
+//            });
+//            patient_waypoints.markers.push(marker);
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+
+        var pl = patient_waypoints.addresses.length;
+        if (pl > 1) {
+          console.log("create route between two waypoints A:",patient_waypoints.addresses[pl - 2], " and ", patient_waypoints.addresses[pl - 1]);
+          calculateAndDisplayRoute(dirservice, dirdisp, patient_waypoints.addresses);
+        }
+      }
+
+
+</script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK-1mUj2RulSoY5sN8eAxN7zXI_Y0N7U&callback=initMap">
+    </script>
+  </body>
+</html>
