@@ -39,3 +39,60 @@ function travelarray(nights) {
   }
   return travel;
 }
+
+      function longlatdistance(lng0, lat0, lng1, lat1) {
+        var R = 6371e3; // metres
+        var φ1 = lat1.toRadians();
+        var φ2 = lat2.toRadians();
+        var Δφ = (lat2 - lat1).toRadians();
+        var Δλ = (lon2 - lon1).toRadians();
+
+        var a =
+          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var d = R * c;
+        return d;
+      }
+
+      function map_longlatdistance(geocoder, origin, dests) {
+        var distances = [];
+        for (var i = 0; i < dests.length; ++i) {
+          distances.push(
+            longlatdistance(
+              origin_loc.lng,
+              origin_loc.lat,
+              dests[i].lng,
+              dests[i].lat
+            )
+          );
+        }
+        return distances;
+      }
+
+      function all_distances_between(dirmatservice, origin, dests) {
+        dirmatservice.getDistanceMatrix(
+          {
+            origins: [origin],
+            destinations: dests,
+            travelMode: "DRIVING",
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false
+          },
+          function(response, status) {
+            if (status !== "OK") {
+              alert("Error was: " + status);
+            } else {
+              var originList = response.originAddresses;
+              var destinationList = response.destinationAddresses;
+
+              for (var i = 0; i < originList.length; i++) {
+                var results = response.rows[i].elements;
+              }
+            }
+          }
+        );
+      }
+
