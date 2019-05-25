@@ -128,10 +128,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
-    os.path.join(REACT_APP_DIR, 'static')
+    os.path.join(REACT_APP_DIR, 'static'),
+    os.path.join(REACT_APP_DIR, 'static', 'js'),
+    os.path.join(REACT_APP_DIR, 'static', 'css'),
 ]
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/login/'
+# LOGIN_URL = '/lo/'
