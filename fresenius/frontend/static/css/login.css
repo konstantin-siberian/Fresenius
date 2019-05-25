@@ -1,0 +1,115 @@
+label[for="id_username"]{
+    /* color: #ffffff; */
+    /* vertical-align: middle; */
+    /* font-weight: bold; */
+    /* clear: both; */
+    /* font-size: 24pt; */
+    /* float: left; */
+
+    /* display: inline-block; */
+    /* margin-right: 20px; */
+    /* position: absolute; */
+    width: 114px;
+    height: 41px;
+
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 30px;
+    line-height: 35px;
+    text-align: center;
+
+    color: #FFFBFB;
+}
+
+label[for="id_password"]{
+    /* color: #ffffff; */
+    /* vertical-align: middle; */
+    /* font-weight: bold; */
+    /* font-size: 24pt; */
+    /* float: left; */
+    margin-right: 20px;
+    /* display: inline-block; */
+    margin-top: 40px;
+
+    width: 176px;
+    height: 44px;
+
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 30px;
+    line-height: 35px;
+    text-align: center;
+    color: #FFFBFB;
+}
+body{
+    /* background: #6a2c93; */
+    /* background-image: url('http://www.clker.com/cliparts/C/g/v/R/Z/R/world-map-blue.svg'); */
+    background-image: url('./img/world.png');
+    background-size: 100% 120%;
+
+}
+
+div{
+    text-align: center;
+}
+
+#id_username{
+    width: 236px;
+    min-width: 236px;
+    height: 56px;
+    text-align: center;
+    display: inline-block;
+    border: 2px solid #AAAAAA;
+    background: linear-gradient(180deg, rgba(0, 61, 153, 0.23) 40.1%, rgba(255, 255, 255, 0.145) 100%);
+    color: #AAAAAA;
+    margin-left: 75px;
+    font-size: 24px;
+    font-family: Roboto;
+}
+
+#id_password{
+    width: 236px;
+    min-width: 236px;
+    height: 56px;
+    margin-top: 20px;
+    border: 2px solid #AAAAAA;
+    text-align: center;
+    display: inline-block;
+    background: linear-gradient(180deg, rgba(0, 61, 153, 0.23) 40.1%, rgba(255, 255, 255, 0.145) 100%);
+    color: #AAAAAA;
+    font-size: 24px;
+    font-family: Roboto;
+
+}
+
+#sendlogin{
+    position: relative;
+    left: 250px;
+    bottom: 100px;
+}
+
+.buttn-login{
+    margin-top: 40px;
+    background-color:#ff32a2;
+    color: white;
+    border-color: white;
+    border-radius: 25px;
+    border: 2px solid;
+    border-color: white;
+    padding: 10px 60px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.buttn-login:hover{
+    background-color:white;
+    color:#ff32a2;
+    border: 2px solid #ff32a2;
+}
+.buttn-login:active:focus{
+    background-color:#ff32a2;
+    color:white;
+    outline:0;
+}

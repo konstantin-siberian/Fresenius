@@ -5,31 +5,33 @@
         <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
         <link rel="stylesheet" href="{% static 'login.css' %}" type="text/css">
         <link rel="shortcut icon" href="{% static 'favicon/favicon.ico'%}">
-        <title>Money Pig</title>
+        <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+        <title>Fresenius</title>
     </head>
     <body>
     <div class="container">
         <div class="row justify-content-center align-items-center" style="height:100vh">
             <div class="col-4">
+                <img src="{% static 'img/logo.png' %}" style="padding-bottom: 50px">
                 <form method="post" action="{% url 'login' %}">
                     {% csrf_token %}
-                    <div>
+                    <!-- <div> -->
+                    <div style="display:flex; flex-direction: row; justify-content: center; align-items: center">
                         {{ form.username.label_tag }}
-                    </div>
-                    <div>
                         {{ form.username }}
                     </div>
-
-                    <div>
+                    <!-- <div> -->
+                    <div style="display:flex; flex-direction: row; justify-content: center; align-items: center; flex: auto;">
                         {{ form.password.label_tag }}
-                    </div>
-                    <div>
                         {{ form.password }}
                     </div>
 
-{#                    {{ form.as_p }}#}
-{#                    <button type="submit" id="sendlogin" class="btn btn-primary">login</button>#}
-                    <button type="submit" id="sendlogin" class="buttn-login">login</button>
+                  <!-- {{ form.as_p }} -->
+<!-- {#                    <button type="submit" id="sendlogin" class="btn btn-primary">login</button>#} -->
+                    <!-- <button type="submit" id="sendlogin" class="buttn-login">login</button> -->
+                    <button type="submit" id="sendlogin" style="border: 0; background: transparent">
+                            <img src="{% static 'img/arrow.png' %}" width="53" height="53" alt="submit" />
+                        </button>
                     {% if form.errors %}
                         <p>Your username and password didn't match. Please try again.</p>
                     {% endif %}

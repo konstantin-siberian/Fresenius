@@ -29,7 +29,7 @@ SECRET_KEY = 'ze^5o&zf$q8d0@)8pcq!3^8u4!jw7cswhbm7x%jo^35*&ufgp6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['isaakbormental.pythonanywhere.com']
 
 
 # Application definition
@@ -128,10 +128,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
-    os.path.join(REACT_APP_DIR, 'static')
+    os.path.join(REACT_APP_DIR, 'static'),
+    os.path.join(REACT_APP_DIR, 'static', 'js'),
+    os.path.join(REACT_APP_DIR, 'static', 'css'),
 ]
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/login/'
+# LOGIN_URL = '/lo/'
