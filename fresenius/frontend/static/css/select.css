@@ -1,0 +1,33 @@
+@font-face {
+  font-family: "Helvetica Neue";
+  font-weight: bold;
+  src: url("../fonts/HelveticaNeueLTStd-BdEx.otf") format("opentype");
+}
+
+
+.selection-btn {
+   width: 250px;
+   padding: 10px;
+   cursor: pointer;
+   margin: 0 auto;
+   margin-bottom: 20px;
+   font-weight: 900;
+   font-size: 24px;
+   line-height: 35px;
+   text-align: center;
+   color: #fff;
+   background: linear-gradient(180deg, #003D99 19.27%, rgba(39, 91, 169, 0.859864) 46.88%, rgba(79, 121, 184, 0.5) 75.52%, rgba(54, 117, 210, 0.24) 100%);
+   font-family: "Helvetica Neue", sans-serif;
+}
+
+.wrapper {
+  background-image: url(../img/map-light.png);
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 100vh;
+}
+
+.select-wrapper {
+  padding-top: 35vh;
+}
