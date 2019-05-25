@@ -131,6 +131,7 @@
         <input id="num-nights" type="text" placeholder="nights" />
       </div>
     </div>
+    <button type="button" id="h-integrate-button">Integrate Treatments</button>
     <div id="map"></div>
     <div id="infowindow-content">
       <img src="" width="16" height="16" id="place-icon" />
@@ -140,114 +141,22 @@
     </div>
     <script src="static/js/coordinates.js" type="text/javascript"></script>
     <script src="static/js/hospitals.js" type="text/javascript"></script>
+    <script src="static/js/route-drawing.js" type="text/javascript"></script>
+    <script src="static/js/h-integration.js" type="text/javascript"></script>
     <script>
       // This example adds a user-editable rectangle to the map.
       // When the user changes the bounds of the rectangle,
       // an info window pops up displaying the new bounds.
 
       var map;
-      var patient_waypoints = {
-        addresses: new Array(),
-        markers: new Array(),
-        dirdisp: new Array(),
-        loc: new Array(),
-        nights: new Array()
-      };
+      var patient_waypoints = new Array();
       var directionsService;
       var directionsDisplay;
       // day 0 -> monday, day 1 -> tuesday, ...
-      var patient_properties = { treatment_days: [0, 2, 4] };
-
-      function addr2wayptr(addrs) {
-        var wayptrs = [];
-        for (var i = 0; i < addrs.length; ++i) {
-          wayptrs.push({ location: addrs[i], stopover: true });
-        }
-        return wayptrs;
-      }
-
-      function longlatdistance(lng0, lat0, lng1, lat1) {
-        var R = 6371e3; // metres
-        var φ1 = lat1.toRadians();
-        var φ2 = lat2.toRadians();
-        var Δφ = (lat2 - lat1).toRadians();
-        var Δλ = (lon2 - lon1).toRadians();
-
-        var a =
-          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        var d = R * c;
-        return d;
-      }
-
-      function map_longlatdistance(geocoder, origin, dests) {
-        var distances = [];
-        for (var i = 0; i < dests.length; ++i) {
-          distances.push(
-            longlatdistance(
-              origin_loc.lng,
-              origin_loc.lat,
-              dests[i].lng,
-              dests[i].lat
-            )
-          );
-        }
-        return distances;
-      }
-
-      function all_distances_between(dirmatservice, origin, dests) {
-        dirmatservice.getDistanceMatrix(
-          {
-            origins: [origin],
-            destinations: dests,
-            travelMode: "DRIVING",
-            unitSystem: google.maps.UnitSystem.METRIC,
-            avoidHighways: false,
-            avoidTolls: false
-          },
-          function(response, status) {
-            if (status !== "OK") {
-              alert("Error was: " + status);
-            } else {
-              var originList = response.originAddresses;
-              var destinationList = response.destinationAddresses;
-
-              for (var i = 0; i < originList.length; i++) {
-                var results = response.rows[i].elements;
-              }
-            }
-          }
-        );
-      }
-
-      function calculateAndDisplayRoute(dirservice, dirdisp, addresses) {
-        var wps = addr2wayptr(addresses.slice(1, addresses.length - 1));
-        var origin = addresses[0];
-        var destination = addresses[addresses.length - 1];
-        console.log(
-          "calculateAndDisplayRoute(), origin = ",
-          origin,
-          " destination = ",
-          destination
-        );
-        dirservice.route(
-          {
-            origin: origin,
-            destination: destination,
-            travelMode: "DRIVING",
-            waypoints: wps
-          },
-          function(response, status) {
-            if (status === "OK") {
-              dirdisp.setDirections(response);
-            } else {
-              window.alert("Directions request failed due to " + status);
-            }
-          }
-        );
-      }
+      // day offset -> number of days from the first travel day to the next monday
+      var patient_properties = { 'treatment_days': [0, 2, 4] , 'starting_day_offset': 1};
+      var integrateTimeButton = document.getElementById("h-integrate-button");
+      integrateTimeButton.onclick = function() { integrateTimeHandler(patient_waypoints, patient_properties, directionsService, directionsDisplay); };
 
       function initMap() {
         console.log("initMap()");
@@ -313,7 +222,6 @@
             window.alert("Enter a valid number of nights to stay");
             return;
           }
-          patient_waypoints.nights.push(num_nights);
 
           // If the place has a geometry, then present it on a map.
           if (place.geometry.viewport) {
@@ -325,9 +233,11 @@
           var l = place.geometry.location;
 
           marker.setPosition(l);
-          patient_waypoints.loc.push(l);
-          patient_waypoints.nights.push();
-          addRoute(l, geocoder, map, directionsService, directionsDisplay);
+          var fd = (patient_waypoints.length == 0 ? 0 :
+                    patient_waypoints[patient_waypoints.length - 1].day_to);
+          patient_waypoints.push({'loc' : l,
+            'day_from' : fd, 'day_to' : fd + num_nights, 'id' : patient_waypoints.length});
+          drawRoute(patient_waypoints, directionsService, directionsDisplay);
           marker.setVisible(true);
 
           var address = "";
@@ -376,24 +286,6 @@
         ///////////// PLACE AUTOCOMPLETION END
         mark_all_hospitals(hospitals_json, map);
         var geocoder = new google.maps.Geocoder();
-      }
-      // Show the new coordinates for the rectangle in an info window.
-      function addRoute(address, geocoder, resultsMap, dirservice, dirdisp) {
-        patient_waypoints.addresses.push(address);
-        var pl = patient_waypoints.addresses.length;
-        if (pl > 1) {
-          console.log(
-            "create route between two waypoints A:",
-            patient_waypoints.addresses[pl - 2],
-            " and ",
-            patient_waypoints.addresses[pl - 1]
-          );
-          calculateAndDisplayRoute(
-            dirservice,
-            dirdisp,
-            patient_waypoints.addresses
-          );
-        }
       }
     </script>
     <script
