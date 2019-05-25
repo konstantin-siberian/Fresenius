@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta charset="utf-8" />
     <title>Simple Markers</title>
+
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -11,137 +12,396 @@
         height: 100%;
       }
       /* Optional: Makes the sample page fill the window. */
-      html, body {
+      html,
+      body {
         height: 100%;
         margin: 0;
         padding: 0;
       }
-      #floating-panel {
-        position: absolute;
-        top: 10px;
-        left: 25%;
-        z-index: 5;
+      #description {
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+      }
+
+      #infowindow-content .title {
+        font-weight: bold;
+      }
+
+      #infowindow-content {
+        display: none;
+      }
+
+      #map #infowindow-content {
+        display: inline;
+      }
+
+      .pac-card {
+        margin: 10px 10px 0 0;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-        text-align: center;
-        font-family: 'Roboto','sans-serif';
-        line-height: 30px;
-        padding-left: 10px;
+        font-family: Roboto;
+      }
+
+      #pac-container {
+        padding-bottom: 12px;
+        margin-right: 12px;
+      }
+
+      .pac-controls {
+        display: inline-block;
+        padding: 5px 11px;
+      }
+
+      .pac-controls label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+      }
+
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+      }
+      #num-nights {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 80px;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+      }
+
+      #title {
+        color: #fff;
+        background-color: #4d90fe;
+        font-size: 25px;
+        font-weight: 500;
+        padding: 6px 12px;
       }
     </style>
+    <link rel="stylesheet" href="css/index.css" />
   </head>
   <body>
-    <div id="floating-panel">
-      <input id="address" type="textbox" value="Sydney, NSW">
-      <input id="submit" type="button" value="Geocode">
+    <div class="pac-card" id="pac-card">
+      <div>
+        <div id="title">
+          Add layover
+        </div>
+        <div id="type-selector" class="pac-controls">
+          <input
+            type="radio"
+            name="type"
+            id="changetype-all"
+            checked="checked"
+          />
+          <label for="changetype-all">All</label>
+
+          <input type="radio" name="type" id="changetype-establishment" />
+          <label for="changetype-establishment">Establishments</label>
+
+          <input type="radio" name="type" id="changetype-address" />
+          <label for="changetype-address">Addresses</label>
+
+          <input type="radio" name="type" id="changetype-geocode" />
+          <label for="changetype-geocode">Geocodes</label>
+        </div>
+        <div id="strict-bounds-selector" class="pac-controls">
+          <input type="checkbox" id="use-strict-bounds" value="" />
+          <label for="use-strict-bounds">Strict Bounds</label>
+        </div>
+      </div>
+      <div id="pac-container">
+        <input id="pac-input" type="text" placeholder="Enter a location" />
+        <input id="num-nights" type="text" placeholder="nights" />
+      </div>
     </div>
     <div id="map"></div>
-    <script src="static/coordinates.js" type="text/javascript">
-    </script>
+    <div id="infowindow-content">
+      <img src="" width="16" height="16" id="place-icon" />
+      <span id="place-name" class="title"></span><br />
+      <span id="place-address"></span><br />
+      <span id="nights-to-stay"></span>
+    </div>
+    <script src="js/coordinates.js"></script>
+    <script src="js/hospitals.js"></script>
+    <script src="js/h-integration.js"></script>
     <script>
-
       // This example adds a user-editable rectangle to the map.
       // When the user changes the bounds of the rectangle,
       // an info window pops up displaying the new bounds.
 
       var map;
-      var patient_waypoints = { 'addresses' : new Array, 'markers' : new Array , 'dirdisp' : new Array};
+      var patient_waypoints = {
+        addresses: new Array(),
+        markers: new Array(),
+        dirdisp: new Array(),
+        loc: new Array(),
+        nights: new Array()
+      };
       var directionsService;
       var directionsDisplay;
-
-      function mark_all_hospitals(hospitals_json, map) {
-        var vecs = [];
-        // VERY BAAAD; HARD CODED THE NUMBER OF HOSPITALS HERE
-        for (var i = 0; i < 338; ++i) {
-          var lat = hospitals_json.LATITUDE[String(i)];
-          var lon = hospitals_json.LONGITUDE[String(i)];
-          if (lat != null && lon != null) {
-            vecs.push({'lat' : lat,'lng' :  lon});
-          }
-        }
-        var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
-        for (var i = 0; i < vecs.length; ++i) { 
-          var marker = new google.maps.Marker({
-           position: vecs[i],
-           map: map,
-           title: 'hospital',
-           icon: image
-          });
-        }
-      }
+      // day 0 -> monday, day 1 -> tuesday, ...
+      var patient_properties = { treatment_days: [0, 2, 4] };
 
       function addr2wayptr(addrs) {
         var wayptrs = [];
         for (var i = 0; i < addrs.length; ++i) {
-          wayptrs.push({'location': addrs[i], 'stopover' : true});
+          wayptrs.push({ location: addrs[i], stopover: true });
         }
         return wayptrs;
+      }
+
+      function longlatdistance(lng0, lat0, lng1, lat1) {
+        var R = 6371e3; // metres
+        var φ1 = lat1.toRadians();
+        var φ2 = lat2.toRadians();
+        var Δφ = (lat2 - lat1).toRadians();
+        var Δλ = (lon2 - lon1).toRadians();
+
+        var a =
+          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var d = R * c;
+        return d;
+      }
+
+      function map_longlatdistance(geocoder, origin, dests) {
+        var distances = [];
+        for (var i = 0; i < dests.length; ++i) {
+          distances.push(
+            longlatdistance(
+              origin_loc.lng,
+              origin_loc.lat,
+              dests[i].lng,
+              dests[i].lat
+            )
+          );
+        }
+        return distances;
+      }
+
+      function all_distances_between(dirmatservice, origin, dests) {
+        dirmatservice.getDistanceMatrix(
+          {
+            origins: [origin],
+            destinations: dests,
+            travelMode: "DRIVING",
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false
+          },
+          function(response, status) {
+            if (status !== "OK") {
+              alert("Error was: " + status);
+            } else {
+              var originList = response.originAddresses;
+              var destinationList = response.destinationAddresses;
+
+              for (var i = 0; i < originList.length; i++) {
+                var results = response.rows[i].elements;
+              }
+            }
+          }
+        );
       }
 
       function calculateAndDisplayRoute(dirservice, dirdisp, addresses) {
         var wps = addr2wayptr(addresses.slice(1, addresses.length - 1));
         var origin = addresses[0];
         var destination = addresses[addresses.length - 1];
-        console.log("calculateAndDisplayRoute(), origin = ", origin, " destination = " ,destination);
-        dirservice.route({
-          origin: origin,
-          destination: destination,
-          travelMode: 'DRIVING',
-          waypoints: wps,
-        }, function(response, status) {
-          if (status === 'OK') {
-            dirdisp.setDirections(response);
-          } else {
-            window.alert('Directions request failed due to ' + status);
+        console.log(
+          "calculateAndDisplayRoute(), origin = ",
+          origin,
+          " destination = ",
+          destination
+        );
+        dirservice.route(
+          {
+            origin: origin,
+            destination: destination,
+            travelMode: "DRIVING",
+            waypoints: wps
+          },
+          function(response, status) {
+            if (status === "OK") {
+              dirdisp.setDirections(response);
+            } else {
+              window.alert("Directions request failed due to " + status);
+            }
           }
-        });
+        );
       }
 
       function initMap() {
         console.log("initMap()");
-        directionsService = new google.maps.DirectionsService;
-        directionsDisplay = new google.maps.DirectionsRenderer;
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: 44.5452, lng: -78.5389},
+        directionsService = new google.maps.DirectionsService();
+        directionsDisplay = new google.maps.DirectionsRenderer();
+        directionsMatrixService = new google.maps.DistanceMatrixService();
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 51.509865, lng: -0.118092 },
           zoom: 9
         });
-        mark_all_hospitals(hospitals_json, map);
         directionsDisplay.setMap(map);
-        var geocoder = new google.maps.Geocoder();
-        document.getElementById('submit').addEventListener('click', function() {
-          geocodeAddressAndAddRoute(geocoder, map, directionsService, directionsDisplay);
+
+        var card = document.getElementById("pac-card");
+        var input = document.getElementById("pac-input");
+        var types = document.getElementById("type-selector");
+        var strictBounds = document.getElementById("strict-bounds-selector");
+
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(card);
+
+        var autocomplete = new google.maps.places.Autocomplete(input);
+
+        // Bind the map's bounds (viewport) property to the autocomplete object,
+        // so that the autocomplete requests use the current map bounds for the
+        // bounds option in the request.
+        autocomplete.bindTo("bounds", map);
+
+        // Set the data fields to return when the user selects a place.
+        autocomplete.setFields([
+          "address_components",
+          "geometry",
+          "icon",
+          "name"
+        ]);
+
+        var infowindow = new google.maps.InfoWindow();
+        var infowindowContent = document.getElementById("infowindow-content");
+        infowindow.setContent(infowindowContent);
+        var marker = new google.maps.Marker({
+          map: map,
+          anchorPoint: new google.maps.Point(0, -29)
         });
+
+        autocomplete.addListener("place_changed", function() {
+          infowindow.close();
+          marker.setVisible(false);
+          var place = autocomplete.getPlace();
+          if (!place.geometry) {
+            // User entered the name of a Place that was not suggested and
+            // pressed the Enter key, or the Place Details request failed.
+            window.alert(
+              "No details available for input: '" + place.name + "'"
+            );
+            return;
+          }
+
+          var num_nights = document.getElementById("num-nights").value;
+          if (num_nights == null || num_nights == NaN || num_nights == "") {
+            window.alert("Enter a valid number of nights to stay");
+            return;
+          }
+          num_nights = parseInt(num_nights);
+          if (num_nights < 0) {
+            window.alert("Enter a valid number of nights to stay");
+            return;
+          }
+          patient_waypoints.nights.push(num_nights);
+
+          // If the place has a geometry, then present it on a map.
+          if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+          } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17); // Why 17? Because it looks good.
+          }
+          var l = place.geometry.location;
+
+          marker.setPosition(l);
+          patient_waypoints.loc.push(l);
+          patient_waypoints.nights.push();
+          addRoute(l, geocoder, map, directionsService, directionsDisplay);
+          marker.setVisible(true);
+
+          var address = "";
+          if (place.address_components) {
+            address = [
+              (place.address_components[0] &&
+                place.address_components[0].short_name) ||
+                "",
+              (place.address_components[1] &&
+                place.address_components[1].short_name) ||
+                "",
+              (place.address_components[2] &&
+                place.address_components[2].short_name) ||
+                ""
+            ].join(" ");
+          }
+
+          infowindowContent.children["place-icon"].src = place.icon;
+          infowindowContent.children["place-name"].textContent = place.name;
+          infowindowContent.children["place-address"].textContent = address;
+          infowindowContent.children["nights-to-stay"].textContent =
+            String(num_nights) + " nights";
+          infowindow.open(map, marker);
+        });
+
+        // Sets a listener on a radio button to change the filter type on Places
+        // Autocomplete.
+        function setupClickListener(id, types) {
+          var radioButton = document.getElementById(id);
+          radioButton.addEventListener("click", function() {
+            autocomplete.setTypes(types);
+          });
+        }
+
+        setupClickListener("changetype-all", []);
+        setupClickListener("changetype-address", ["address"]);
+        setupClickListener("changetype-establishment", ["establishment"]);
+        setupClickListener("changetype-geocode", ["geocode"]);
+
+        document
+          .getElementById("use-strict-bounds")
+          .addEventListener("click", function() {
+            console.log("Checkbox clicked! New state=" + this.checked);
+            autocomplete.setOptions({ strictBounds: this.checked });
+          });
+        ///////////// PLACE AUTOCOMPLETION END
+        mark_all_hospitals(hospitals_json, map);
+        var geocoder = new google.maps.Geocoder();
       }
       // Show the new coordinates for the rectangle in an info window.
-
-      function geocodeAddressAndAddRoute(geocoder, resultsMap, dirservice, dirdisp) {
-        var address = document.getElementById('address').value;
+      function addRoute(address, geocoder, resultsMap, dirservice, dirdisp) {
         patient_waypoints.addresses.push(address);
-        geocoder.geocode({'address': address}, function(results, status) {
-          if (status === 'OK') {
-            resultsMap.setCenter(results[0].geometry.location);
-//            var marker = new google.maps.Marker({
-//              map: resultsMap,
-//              position: results[0].geometry.location
-//            });
-//            patient_waypoints.markers.push(marker);
-          } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-          }
-        });
-
         var pl = patient_waypoints.addresses.length;
         if (pl > 1) {
-          console.log("create route between two waypoints A:",patient_waypoints.addresses[pl - 2], " and ", patient_waypoints.addresses[pl - 1]);
-          calculateAndDisplayRoute(dirservice, dirdisp, patient_waypoints.addresses);
+          console.log(
+            "create route between two waypoints A:",
+            patient_waypoints.addresses[pl - 2],
+            " and ",
+            patient_waypoints.addresses[pl - 1]
+          );
+          calculateAndDisplayRoute(
+            dirservice,
+            dirdisp,
+            patient_waypoints.addresses
+          );
         }
       }
-
-
-</script>
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK-1mUj2RulSoY5sN8eAxN7zXI_Y0N7U&callback=initMap">
     </script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK-1mUj2RulSoY5sN8eAxN7zXI_Y0N7U&libraries=places&callback=initMap"
+    ></script>
   </body>
 </html>
