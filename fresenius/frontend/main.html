@@ -149,11 +149,7 @@
       // an info window pops up displaying the new bounds.
 
       var map;
-      var patient_waypoints = {
-        addresses: new Array(),
-        loc: new Array(),
-        nights: new Array()
-      };
+      var patient_waypoints = new Array();
       var directionsService;
       var directionsDisplay;
       // day 0 -> monday, day 1 -> tuesday, ...
@@ -260,7 +256,6 @@
             window.alert("Enter a valid number of nights to stay");
             return;
           }
-          patient_waypoints.nights.push(num_nights);
 
           // If the place has a geometry, then present it on a map.
           if (place.geometry.viewport) {
@@ -272,8 +267,10 @@
           var l = place.geometry.location;
 
           marker.setPosition(l);
-          patient_waypoints.loc.push(l);
-          patient_waypoints.nights.push();
+          var fd = (patient_waypoints.length == 0 ? 0 :
+                    patient_waypoints[patient_waypoints.length - 1].from_day);
+          patient_waypoints.push({'loc' : l,
+            'from_day' : fd, 'to_day' : fd + num_nights});
           addRoute(l, geocoder, map, directionsService, directionsDisplay);
           marker.setVisible(true);
 
@@ -326,20 +323,17 @@
       }
       // Show the new coordinates for the rectangle in an info window.
       function addRoute(address, geocoder, resultsMap, dirservice, dirdisp) {
-        patient_waypoints.addresses.push(address);
-        var pl = patient_waypoints.addresses.length;
+        var pl = patient_waypoints.length;
+
         if (pl > 1) {
-          console.log(
-            "create route between two waypoints A:",
-            patient_waypoints.addresses[pl - 2],
-            " and ",
-            patient_waypoints.addresses[pl - 1]
-          );
+          var locs = new Array();
+          for (var i = 0; i < patient_waypoints.length; ++i) {
+            locs.push(patient_waypoints[i].loc);
+          }
           calculateAndDisplayRoute(
             dirservice,
             dirdisp,
-            patient_waypoints.addresses
-          );
+            locs);
         }
       }
     </script>

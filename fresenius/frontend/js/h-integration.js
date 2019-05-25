@@ -16,24 +16,35 @@ function first_non_zero_index(arr) {
   return arr.length;
 }
 
+function get_first_nightstay_waypoint(patient_waypoints) {
+  for (var i = 0; i < patient_waypoints.length; ++i) {
+    if (patient_waypoints[i].to_day - patient_waypoints.from_day > 0) {
+      return i;
+    }
+  }
+  return patient_waypoint.length;
+}
+
+function get_nights(i, patient_waypoints) {
+  return patient_waypoints[i].to_day - patient_waypoints[i].from_day;
+}
+
 // returns an array of indices which point to current
 // waypoints in the user path. day 0: {origin: id, dest: id}
 // The function returns the last travel on that day since there
 // can be multiple travels per day
-function get_travelarray(nights) {
+function get_travelarray(patient_waypoints) {
   // day 0 = day before the first night
-  var num_travel_days = sum(nights) + 1;
-  var init = first_non_zero_index(nights);
+  var init = get_first_nightstay_waypoint(patient_waypoints);
   var travel = [{'origin' : init, 'destination' : init}];
-  for (var di = 1; di < nights[init]; ++di) {
+  for (var di = 1; di < get_nights(init, patient_waypoints); ++di) {
     travel.push({'origin': init, 'destination': init});
   }
 
-  if (nights.length < 2) { return travel; }
-  for (var waypoint_id = init; waypoint_id < nights.length - 1; ++waypoint_id) {
-    if (nights[waypoint_id + 1] == 0) { continue; }
+  for (var waypoint_id = init; waypoint_id < patient_waypoints.length - 1; ++waypoint_id) {
+    if (get_nights(waypoint_id + 1, patient_waypoints) == 0) { continue; }
     travel.push({'origin': waypoint_id, 'destination': waypoint_id + 1});
-    for (var di = 1; di < nights[waypoint_id + 1]; ++di) {
+    for (var di = 1; di < get_nights(waypoint_id + 1, patient_waypoints); ++di) {
       travel.push({'origin': waypoint_id + 1, 'destination': waypoint_id + 1});
     }
   }
@@ -112,9 +123,24 @@ function contains(arr, el) {
   return false;
 }
 
+function splitUpStop(patient_waypoints, day) {
+  for (var i = 0; i < patient_waypoints.loc.length; ++i) {
+    if (patient_waypoints.day_from[i] < day &&
+      (patient_waypoints.day_to[i] - patient_waypoints.day_from[i]) > 1) {
+      var address = patient_waypoint.addresses[i];
+      var loc = patient_waypoints.loc[i];
+      patient_waypoints.addresses = patient_waypoints.addresses.slice(0, i)
+    }
+  }
+}
+
+function insertOneDayStop(patient_waypoints, loc, day, from_node, to_node) {
+  
+}
+
 function integrateTimeHandler(patient_waypoints, patient_properties, dirservice, dirdisp) {
   console.log("[+]integrateTimeHandler()");
-  var tarr = get_travelarray(patient_waypoints.nights);
+  var tarr = get_travelarray(patient_waypoints);
   var treatmentdays = new Array();
   for (var i = 0; i < tarr.length; ++i) {
     if (contains(patient_properties.treatment_days,
@@ -124,6 +150,5 @@ function integrateTimeHandler(patient_waypoints, patient_properties, dirservice,
   }
   console.log("[-]integrateTimeHandler()");
 
-  
 //  var distances = map_longlatdistances 
 }
