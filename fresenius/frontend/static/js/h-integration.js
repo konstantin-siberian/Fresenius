@@ -52,16 +52,37 @@ function get_travelarray(patient_waypoints) {
 }
 
 function longlatdistance(lon1,lat1, lon2, lat2) {
+	var lon1_;
+	var lon2_;
+	var lat1_;
+	var lat2_;
+	if (isFunction(lon1)) {
+	  lon1_ = lon1();
+      lat1_ = lat1();
+	}
+	else {
+	  lon1_ = lon1;
+      lat1_ = lat1;
+	}
+	if (isFunction(lon2)) {
+	  lon2_ = lon2();
+      lat2_ = lat2();
+	}
+	else {
+	  lon2_ = lon2;
+      lat2_ = lat2;
+	}
+
 	var unit = 1;
-	if ((lat1 == lat2) && (lon1 == lon2)) {
+	if ((lat1_ == lat2_) && (lon1_ == lon2_)) {
 		return 0;
 	}
 	else {
-		var radlat1 = Math.PI * lat1/180;
-		var radlat2 = Math.PI * lat2/180;
-		var theta = lon1-lon2;
+		var radlat1_ = Math.PI * lat1_/180;
+		var radlat2_ = Math.PI * lat2_/180;
+		var theta = lon1_-lon2_;
 		var radtheta = Math.PI * theta/180;
-		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		var dist = Math.sin(radlat1_) * Math.sin(radlat2_) + Math.cos(radlat1_) * Math.cos(radlat2_) * Math.cos(radtheta);
 		if (dist > 1) {
 			dist = 1;
 		}
@@ -92,7 +113,7 @@ function longlatdistance(lon1,lat1, lon2, lat2) {
 function get_n_smallest(arr, n) {
   // hopefully this is a copy
   var arrtmp = arr;
-  arrtmp.sort(function(a, b) { return a.dist < b.dist; });
+  arrtmp.sort(function(a, b) { return a.dist > b.dist; });
   return arrtmp.slice(0, n);
 }
 
@@ -136,14 +157,14 @@ function splitUp(patient_waypoints, day) {
         (patient_waypoints[i].day_to - patient_waypoints[i].day_from) > 1 &&
         patient_waypoints[i].day_to > day) {
       var fst = patient_waypoints.slice(0, i);
-      var wp = patient_waypoints.shift();
+      var wp = patient_waypoints[i];
       var wp_new = {'loc' : {'lat' : wp.loc.lat, 'lng' : wp.loc.lng}, 
         'day_from': wp.day_from, 'day_to' : day };
       wp.day_from = day;
       fst.push(wp_new);
       fst.push(wp);
-      patient_waypoints = fst.concat(patient_waypoints.slice(i, patient_waypoints.length));
-      return {'new_index' : i, 'patient_waypoints' : patient_waypoints};
+      var new_patient_waypoints = fst.concat(patient_waypoints.slice(i + 1, patient_waypoints.length));
+      return {'new_index' : i, 'patient_waypoints' : new_patient_waypoints};
     }
   }
   return {'new_index' : patient_waypoints.length, 'patient_waypoints' : patient_waypoints};

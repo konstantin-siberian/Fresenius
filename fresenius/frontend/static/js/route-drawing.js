@@ -27,14 +27,24 @@
         );
       }
 
+function isFunction(functionToCheck) {
+ return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+}
+
       function drawRoute(patient_waypoints, dirservice, dirdisp) {
         var pl = patient_waypoints.length;
 
         if (pl > 1) {
           var locs = new Array();
           for (var i = 0; i < patient_waypoints.length; ++i) {
-            locs.push(patient_waypoints[i].loc);
+            if (isFunction(patient_waypoints[i].loc.lat)) {
+              locs.push({lat: patient_waypoints[i].loc.lat(), lng: patient_waypoints[i].loc.lng()});
+            }
+            else {
+              locs.push(patient_waypoints[i].loc);
+            }
           }
+          //var locs = [{lng: 7.118245, lat: 51.249981}, {lng: 7.152320, lat: 51.255890}];
           calculateAndDisplayRoute(
             dirservice,
             dirdisp,

@@ -36,6 +36,9 @@ function mark_all_hospitals(hospitals_json, map) {
       hospitals_json.name[hospitals[i].id] +
       "</b><br><i>Address: </i> " +
       hospitals_json.address[hospitals[i].id] +
+      String(hospitals_json.LATITUDE[hospitals[i].id]) +
+      String(hospitals_json.LONGITUDE[hospitals[i].id]) +
+
       "<br><i>Phone: </i>" +
       hospitals_json.phone[hospitals[i].id] +
       "</div>";
