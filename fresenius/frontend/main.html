@@ -142,6 +142,7 @@
     </div>
     <script src="js/coordinates.js"></script>
     <script src="js/hospitals.js"></script>
+    <script src="js/route-drawing.js"></script>
     <script src="js/h-integration.js"></script>
     <script>
       // This example adds a user-editable rectangle to the map.
@@ -157,40 +158,6 @@
       var patient_properties = { 'treatment_days': [0, 2, 4] , 'starting_day_offset': 1};
       var integrateTimeButton = document.getElementById("h-integrate-button");
       integrateTimeButton.onclick = function() { integrateTimeHandler(patient_waypoints, patient_properties, directionsService, directionsDisplay); };
-      function addr2wayptr(addrs) {
-        var wayptrs = [];
-        for (var i = 0; i < addrs.length; ++i) {
-          wayptrs.push({ location: addrs[i], stopover: true });
-        }
-        return wayptrs;
-      }
-
-      function calculateAndDisplayRoute(dirservice, dirdisp, addresses) {
-        var wps = addr2wayptr(addresses.slice(1, addresses.length - 1));
-        var origin = addresses[0];
-        var destination = addresses[addresses.length - 1];
-        console.log(
-          "calculateAndDisplayRoute(), origin = ",
-          origin,
-          " destination = ",
-          destination
-        );
-        dirservice.route(
-          {
-            origin: origin,
-            destination: destination,
-            travelMode: "DRIVING",
-            waypoints: wps
-          },
-          function(response, status) {
-            if (status === "OK") {
-              dirdisp.setDirections(response);
-            } else {
-              window.alert("Directions request failed due to " + status);
-            }
-          }
-        );
-      }
 
       function initMap() {
         console.log("initMap()");
@@ -268,10 +235,10 @@
 
           marker.setPosition(l);
           var fd = (patient_waypoints.length == 0 ? 0 :
-                    patient_waypoints[patient_waypoints.length - 1].from_day);
+                    patient_waypoints[patient_waypoints.length - 1].day_to);
           patient_waypoints.push({'loc' : l,
-            'from_day' : fd, 'to_day' : fd + num_nights});
-          addRoute(l, geocoder, map, directionsService, directionsDisplay);
+            'day_from' : fd, 'day_to' : fd + num_nights, 'id' : patient_waypoints.length});
+          drawRoute(patient_waypoints, directionsService, directionsDisplay);
           marker.setVisible(true);
 
           var address = "";
@@ -320,21 +287,6 @@
         ///////////// PLACE AUTOCOMPLETION END
         mark_all_hospitals(hospitals_json, map);
         var geocoder = new google.maps.Geocoder();
-      }
-      // Show the new coordinates for the rectangle in an info window.
-      function addRoute(address, geocoder, resultsMap, dirservice, dirdisp) {
-        var pl = patient_waypoints.length;
-
-        if (pl > 1) {
-          var locs = new Array();
-          for (var i = 0; i < patient_waypoints.length; ++i) {
-            locs.push(patient_waypoints[i].loc);
-          }
-          calculateAndDisplayRoute(
-            dirservice,
-            dirdisp,
-            locs);
-        }
       }
     </script>
     <script

@@ -18,15 +18,15 @@ function first_non_zero_index(arr) {
 
 function get_first_nightstay_waypoint(patient_waypoints) {
   for (var i = 0; i < patient_waypoints.length; ++i) {
-    if (patient_waypoints[i].to_day - patient_waypoints.from_day > 0) {
+    if (patient_waypoints[i].day_to - patient_waypoints[i].day_from > 0) {
       return i;
     }
   }
-  return patient_waypoint.length;
+  return patient_waypoints.length;
 }
 
 function get_nights(i, patient_waypoints) {
-  return patient_waypoints[i].to_day - patient_waypoints[i].from_day;
+  return patient_waypoints[i].day_to - patient_waypoints[i].day_from;
 }
 
 // returns an array of indices which point to current
@@ -51,29 +51,36 @@ function get_travelarray(patient_waypoints) {
   return travel;
 }
 
-      function longlatdistance(lng0, lat0, lng1, lat1) {
-        var R = 6371e3; // metres
-        var φ1 = lat1.toRadians();
-        var φ2 = lat2.toRadians();
-        var Δφ = (lat2 - lat1).toRadians();
-        var Δλ = (lon2 - lon1).toRadians();
-
-        var a =
-          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        var d = R * c;
-        return d;
-      }
+function longlatdistance(lon1,lat1, lon2, lat2) {
+	var unit = 1;
+	if ((lat1 == lat2) && (lon1 == lon2)) {
+		return 0;
+	}
+	else {
+		var radlat1 = Math.PI * lat1/180;
+		var radlat2 = Math.PI * lat2/180;
+		var theta = lon1-lon2;
+		var radtheta = Math.PI * theta/180;
+		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		if (dist > 1) {
+			dist = 1;
+		}
+		dist = Math.acos(dist);
+		dist = dist * 180/Math.PI;
+		dist = dist * 60 * 1.1515;
+		if (unit=="K") { dist = dist * 1.609344 }
+		if (unit=="N") { dist = dist * 0.8684 }
+		return dist;
+	}
+}
 
       function map_longlatdistance(origin, dests) {
         var distances = [];
         for (var i = 0; i < dests.length; ++i) {
           distances.push({ 'dist' :
             longlatdistance(
-              origin_loc.lng,
-              origin_loc.lat,
+              origin.lng,
+              origin.lat,
               dests[i].lng,
               dests[i].lat
             )
@@ -86,7 +93,7 @@ function get_n_smallest(arr, n) {
   // hopefully this is a copy
   var arrtmp = arr;
   arrtmp.sort(function(a, b) { return a.dist < b.dist; });
-  return arr.slice(0, n);
+  return arrtmp.slice(0, n);
 }
 
       function all_distances_between(dirmatservice, origin, dests) {
@@ -123,19 +130,49 @@ function contains(arr, el) {
   return false;
 }
 
-function splitUpStop(patient_waypoints, day) {
-  for (var i = 0; i < patient_waypoints.loc.length; ++i) {
-    if (patient_waypoints.day_from[i] < day &&
-      (patient_waypoints.day_to[i] - patient_waypoints.day_from[i]) > 1) {
-      var address = patient_waypoint.addresses[i];
-      var loc = patient_waypoints.loc[i];
-      patient_waypoints.addresses = patient_waypoints.addresses.slice(0, i)
+function splitUp(patient_waypoints, day) {
+  for (var i = 0; i < patient_waypoints.length; ++i) {
+    if (patient_waypoints[i].day_from < day &&
+        (patient_waypoints[i].day_to - patient_waypoints[i].day_from) > 1 &&
+        patient_waypoints[i].day_to > day) {
+      var fst = patient_waypoints.slice(0, i);
+      var wp = patient_waypoints.shift();
+      var wp_new = {'loc' : {'lat' : wp.loc.lat, 'lng' : wp.loc.lng}, 
+        'day_from': wp.day_from, 'day_to' : day };
+      wp.day_from = day;
+      fst.push(wp_new);
+      fst.push(wp);
+      patient_waypoints = fst.concat(patient_waypoints.slice(i, patient_waypoints.length));
+      return {'new_index' : i, 'patient_waypoints' : patient_waypoints};
+    }
+  }
+  return {'new_index' : patient_waypoints.length, 'patient_waypoints' : patient_waypoints};
+}
+
+function insertOneDayStop(patient_waypoints, loc, day, from_node, to_node) {
+  if (from_node == to_node) {
+    // we need to split up a node
+    var tuple = splitUp(patient_waypoints, day);
+    var new_node_index = tuple.new_index;
+    patient_waypoints = tuple.patient_waypoints;
+    var new_wp = {'loc' : loc, 'day_from' : day, 'day_to' : day};
+    patient_waypoints.splice(new_node_index + 1, 0, new_wp);
+  }
+  return patient_waypoints;
+}
+
+function get_waypoint_by_id(patient_waypoints, id) {
+  for (var i = 0; i < patient_waypoints.length; ++i) {
+    if (patient_waypoints[i].id == id) {
+      return patient_waypoints[i];
     }
   }
 }
 
-function insertOneDayStop(patient_waypoints, loc, day, from_node, to_node) {
-  
+function get_index_of_nearest_point(l, ls) {
+  var distances = map_longlatdistance(l, ls);
+  var smallest = get_n_smallest(distances, 20);
+  return smallest[0].id;
 }
 
 function integrateTimeHandler(patient_waypoints, patient_properties, dirservice, dirdisp) {
@@ -146,9 +183,14 @@ function integrateTimeHandler(patient_waypoints, patient_properties, dirservice,
     if (contains(patient_properties.treatment_days,
         (i + 7 - patient_properties.starting_day_offset) % 7)) {
       treatmentdays.push({ 'traveldata' : tarr[i], 'day' : i});
+      if (tarr[i].origin == tarr[i].destination) {
+        var curr_wp = get_waypoint_by_id(patient_waypoints, tarr[i].origin);
+        var nearest_hosp_i = get_index_of_nearest_point(
+          curr_wp.loc, hospitals);
+        patient_waypoints = insertOneDayStop(patient_waypoints, hospitals[nearest_hosp_i], i, tarr[i].origin, tarr[i].destination);
+      }
     }
   }
+  drawRoute(patient_waypoints, dirservice, dirdisp);
   console.log("[-]integrateTimeHandler()");
-
-//  var distances = map_longlatdistances 
 }
