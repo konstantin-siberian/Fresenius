@@ -117,6 +117,17 @@ function get_n_smallest(arr, n) {
   return arrtmp.slice(0, n);
 }
 
+function get_smallest_id(arr) {
+  var s = {'id' : -1, 'dist' : 100000000000.0};
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i].dist < s.dist) {
+      s.dist = arr[i].dist;
+      s.id = arr[i].id;
+    }
+  }
+  return s.id;
+}
+
       function all_distances_between(dirmatservice, origin, dests) {
         dirmatservice.getDistanceMatrix(
           {
@@ -196,6 +207,19 @@ function get_index_of_nearest_point(l, ls) {
   return smallest[0].id;
 }
 
+function add_by_id(dists0, dists1) {
+  dists0.sort(function(a, b) { return a.id > b.id; } );
+  dists1.sort(function(a, b) { return a.id > b.id; } );
+  var sum = new Array();
+  for (var i = 0; i < dists0.length; ++i) {
+    if (dists0[i].id != dists1[i].id) {
+      console.log("error in add_by_id!!");
+    }
+    sum.push({'id' : dists0[i].id, 'dist': dists0.dist + dists1.dist });
+  }
+  return sum;
+}
+
 function integrateTimeHandler(patient_waypoints, patient_properties, dirservice, dirdisp) {
   console.log("[+]integrateTimeHandler()");
   var tarr = get_travelarray(patient_waypoints);
@@ -205,9 +229,18 @@ function integrateTimeHandler(patient_waypoints, patient_properties, dirservice,
         (i + 7 - patient_properties.starting_day_offset) % 7)) {
       treatmentdays.push({ 'traveldata' : tarr[i], 'day' : i});
       if (tarr[i].origin == tarr[i].destination) {
+        // in node hospital integration
         var curr_wp = get_waypoint_by_id(patient_waypoints, tarr[i].origin);
         var nearest_hosp_i = get_index_of_nearest_point(
           curr_wp.loc, hospitals);
+        patient_waypoints = insertOneDayStop(patient_waypoints, hospitals[nearest_hosp_i], i, tarr[i].origin, tarr[i].destination);
+      }
+      else {
+        // on way hospital integration
+        var distances_origin = map_longlatdistance(tarr[i].origin, hospitals);
+        var distances_destination = map_longlatdistance(tarr[i].destination, hospitals);
+        var sums = add_by_id(distances_origin, distances_destination);
+        var nearest_hosp_i = get_smallest_id(sums);
         patient_waypoints = insertOneDayStop(patient_waypoints, hospitals[nearest_hosp_i], i, tarr[i].origin, tarr[i].destination);
       }
     }
