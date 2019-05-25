@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+
+    <title>Fresenius Medical Care</title>
+    <link rel="stylesheet" href="static/css/trip.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light ">
+      <a class="navbar-brand" href="#">
+        <img src="static/img/logo.png" width="200" alt="" />
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">TRIP DETAILS</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">BOOKING</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">PROFILE</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <div class="container-fluid wrapper">
+      <div class="row">
+        <div class="trip-menu" style="display: none;">
+          <form>
+            <div class="form-group row">
+              <div class="col">
+                <label for="home-address">Home address</label>
+                <input required type="text" id="home-address" />
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-7">
+                Address of a hotel
+              </div>
+              <div class="col-5">
+                Nights of stay
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-7">
+                <div class="number"></div>
+                <input required type="text" id="place-1" />
+              </div>
+              <div class="col-5">
+                <input required type="text" id="days-1" />
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="number"></div>
+              <div class="col-7">
+                <input required type="text" id="place-2" />
+              </div>
+              <div class="col-5">
+                <input required type="text" id="days-2" />
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="number"></div>
+              <div class="col-7">
+                <input required type="text" id="place-3" />
+              </div>
+              <div class="col-5">
+                <input required type="text" id="days-3" />
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="col">
+          <div class="pac-card" id="pac-card">
+            <div>
+              <div id="title">
+                Add a stopover
+              </div>
+              <div id="type-selector" class="pac-controls">
+                <input
+                    type="radio"
+                    name="type"
+                    id="changetype-all"
+                    checked="checked"
+                />
+                <label for="changetype-all">All</label>
+
+                <input type="radio" name="type" id="changetype-establishment" />
+                <label for="changetype-establishment">Establishments</label>
+
+                <input type="radio" name="type" id="changetype-address" />
+                <label for="changetype-address">Addresses</label>
+
+                <input type="radio" name="type" id="changetype-geocode" />
+                <label for="changetype-geocode">Geocodes</label>
+              </div>
+              <div id="strict-bounds-selector" class="pac-controls">
+                <input type="checkbox" id="use-strict-bounds" value="" />
+                <label for="use-strict-bounds">Strict Bounds</label>
+              </div>
+            </div>
+            <div id="pac-container">
+              <input
+                  id="pac-input"
+                  type="text"
+                  placeholder="Enter an address"
+              />
+              <input id="num-nights" type="text" placeholder="Nights" />
+            </div>
+          </div>
+          <div id="map"></div>
+          <div id="infowindow-content">
+            <img src="" width="16" height="16" id="place-icon" />
+            <span id="place-name" class="title"></span><br />
+            <span id="place-address"></span><br />
+            <span id="nights-to-stay"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/coordinates.js" type="text/javascript"></script>
+    <script src="static/js/hospitals.js" type="text/javascript"></script>
+    <script>
+      // This example adds a user-editable rectangle to the map.
+      // When the user changes the bounds of the rectangle,
+      // an info window pops up displaying the new bounds.
+
+      var map;
+      var patient_waypoints = {
+        addresses: new Array(),
+        markers: new Array(),
+        dirdisp: new Array(),
+        loc: new Array(),
+        nights: new Array()
+      };
+      var directionsService;
+      var directionsDisplay;
+      // day 0 -> monday, day 1 -> tuesday, ...
+      var patient_properties = { treatment_days: [0, 2, 4] };
+
+      function addr2wayptr(addrs) {
+        var wayptrs = [];
+        for (var i = 0; i < addrs.length; ++i) {
+          wayptrs.push({ location: addrs[i], stopover: true });
+        }
+        return wayptrs;
+      }
+
+      function longlatdistance(lng0, lat0, lng1, lat1) {
+        var R = 6371e3; // metres
+        var φ1 = lat1.toRadians();
+        var φ2 = lat2.toRadians();
+        var Δφ = (lat2 - lat1).toRadians();
+        var Δλ = (lon2 - lon1).toRadians();
+
+        var a =
+          Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var d = R * c;
+        return d;
+      }
+
+      function map_longlatdistance(geocoder, origin, dests) {
+        var distances = [];
+        for (var i = 0; i < dests.length; ++i) {
+          distances.push(
+            longlatdistance(
+              origin_loc.lng,
+              origin_loc.lat,
+              dests[i].lng,
+              dests[i].lat
+            )
+          );
+        }
+        return distances;
+      }
+
+      function all_distances_between(dirmatservice, origin, dests) {
+        dirmatservice.getDistanceMatrix(
+          {
+            origins: [origin],
+            destinations: dests,
+            travelMode: "DRIVING",
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false
+          },
+          function(response, status) {
+            if (status !== "OK") {
+              alert("Error was: " + status);
+            } else {
+              var originList = response.originAddresses;
+              var destinationList = response.destinationAddresses;
+
+              for (var i = 0; i < originList.length; i++) {
+                var results = response.rows[i].elements;
+              }
+            }
+          }
+        );
+      }
+
+      function calculateAndDisplayRoute(dirservice, dirdisp, addresses) {
+        var wps = addr2wayptr(addresses.slice(1, addresses.length - 1));
+        var origin = addresses[0];
+        var destination = addresses[addresses.length - 1];
+        console.log(
+          "calculateAndDisplayRoute(), origin = ",
+          origin,
+          " destination = ",
+          destination
+        );
+        dirservice.route(
+          {
+            origin: origin,
+            destination: destination,
+            travelMode: "DRIVING",
+            waypoints: wps
+          },
+          function(response, status) {
+            if (status === "OK") {
+              dirdisp.setDirections(response);
+            } else {
+              window.alert("Directions request failed due to " + status);
+            }
+          }
+        );
+      }
+
+      function initMap() {
+        console.log("initMap()");
+        directionsService = new google.maps.DirectionsService();
+        directionsDisplay = new google.maps.DirectionsRenderer();
+        directionsMatrixService = new google.maps.DistanceMatrixService();
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 51.509865, lng: -0.118092 },
+          zoom: 9
+        });
+        directionsDisplay.setMap(map);
+
+        var card = document.getElementById("pac-card");
+        var input = document.getElementById("pac-input");
+        var types = document.getElementById("type-selector");
+        var strictBounds = document.getElementById("strict-bounds-selector");
+
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(card);
+
+        var autocomplete = new google.maps.places.Autocomplete(input);
+
+        // Bind the map's bounds (viewport) property to the autocomplete object,
+        // so that the autocomplete requests use the current map bounds for the
+        // bounds option in the request.
+        autocomplete.bindTo("bounds", map);
+
+        // Set the data fields to return when the user selects a place.
+        autocomplete.setFields([
+          "address_components",
+          "geometry",
+          "icon",
+          "name"
+        ]);
+
+        var infowindow = new google.maps.InfoWindow();
+        var infowindowContent = document.getElementById("infowindow-content");
+        infowindow.setContent(infowindowContent);
+        var marker = new google.maps.Marker({
+          map: map,
+          anchorPoint: new google.maps.Point(0, -29)
+        });
+
+        autocomplete.addListener("place_changed", function() {
+          infowindow.close();
+          marker.setVisible(false);
+          var place = autocomplete.getPlace();
+          if (!place.geometry) {
+            // User entered the name of a Place that was not suggested and
+            // pressed the Enter key, or the Place Details request failed.
+            window.alert(
+              "No details available for input: '" + place.name + "'"
+            );
+            return;
+          }
+
+          var num_nights = document.getElementById("num-nights").value;
+          if (num_nights == null || num_nights == NaN || num_nights == "") {
+            window.alert("Enter a valid number of nights to stay");
+            return;
+          }
+          num_nights = parseInt(num_nights);
+          if (num_nights < 0) {
+            window.alert("Enter a valid number of nights to stay");
+            return;
+          }
+          patient_waypoints.nights.push(num_nights);
+
+          // If the place has a geometry, then present it on a map.
+          if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+          } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17); // Why 17? Because it looks good.
+          }
+          var l = place.geometry.location;
+
+          marker.setPosition(l);
+          patient_waypoints.loc.push(l);
+          patient_waypoints.nights.push();
+          addRoute(l, geocoder, map, directionsService, directionsDisplay);
+          marker.setVisible(true);
+
+          var address = "";
+          if (place.address_components) {
+            address = [
+              (place.address_components[0] &&
+                place.address_components[0].short_name) ||
+                "",
+              (place.address_components[1] &&
+                place.address_components[1].short_name) ||
+                "",
+              (place.address_components[2] &&
+                place.address_components[2].short_name) ||
+                ""
+            ].join(" ");
+          }
+
+          infowindowContent.children["place-icon"].src = place.icon;
+          infowindowContent.children["place-name"].textContent = place.name;
+          infowindowContent.children["place-address"].textContent = address;
+          infowindowContent.children["nights-to-stay"].textContent =
+            String(num_nights) + " nights";
+          infowindow.open(map, marker);
+        });
+
+        // Sets a listener on a radio button to change the filter type on Places
+        // Autocomplete.
+        function setupClickListener(id, types) {
+          var radioButton = document.getElementById(id);
+          radioButton.addEventListener("click", function() {
+            autocomplete.setTypes(types);
+          });
+        }
+
+        setupClickListener("changetype-all", []);
+        setupClickListener("changetype-address", ["address"]);
+        setupClickListener("changetype-establishment", ["establishment"]);
+        setupClickListener("changetype-geocode", ["geocode"]);
+
+        document
+          .getElementById("use-strict-bounds")
+          .addEventListener("click", function() {
+            console.log("Checkbox clicked! New state=" + this.checked);
+            autocomplete.setOptions({ strictBounds: this.checked });
+          });
+        ///////////// PLACE AUTOCOMPLETION END
+        mark_all_hospitals(hospitals_json, map);
+        var geocoder = new google.maps.Geocoder();
+      }
+      // Show the new coordinates for the rectangle in an info window.
+      function addRoute(address, geocoder, resultsMap, dirservice, dirdisp) {
+        patient_waypoints.addresses.push(address);
+        var pl = patient_waypoints.addresses.length;
+        if (pl > 1) {
+          console.log(
+            "create route between two waypoints A:",
+            patient_waypoints.addresses[pl - 2],
+            " and ",
+            patient_waypoints.addresses[pl - 1]
+          );
+          calculateAndDisplayRoute(
+            dirservice,
+            dirdisp,
+            patient_waypoints.addresses
+          );
+        }
+      }
+    </script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK-1mUj2RulSoY5sN8eAxN7zXI_Y0N7U&libraries=places&callback=initMap"
+    ></script>
+  </body>
+</html>
