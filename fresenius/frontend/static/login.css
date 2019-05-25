@@ -1,5 +1,5 @@
 label[for="id_username"]{
-    color: #ff32a2;
+    color: #ffffff;
     vertical-align: middle;
     font-weight: bold;
     font-size: 24pt;
@@ -9,7 +9,7 @@ label[for="id_username"]{
 }
 
 label[for="id_password"]{
-    color: #ff32a2;
+    color: #ffffff;
     vertical-align: middle;
     font-weight: bold;
     font-size: 24pt;
@@ -17,8 +17,9 @@ label[for="id_password"]{
 }
 body{
     /* background: #6a2c93; */
-    background-image: url('http://www.clker.com/cliparts/C/g/v/R/Z/R/world-map-blue.svg');
-    background-size: 110% 110%;
+    /* background-image: url('http://www.clker.com/cliparts/C/g/v/R/Z/R/world-map-blue.svg'); */
+    background-image: url('world.png');
+    background-size: 100% 120%;
 
 }
 
@@ -30,9 +31,9 @@ div{
     width: 300px;
     height: 40px;
     border-radius: 15px;
-    border: 2px solid #ff32a2;
+    /* border: 2px solid #ff32a2; */
     outline:0;
-    /* border-width: 0; */
+    border-width: 0;
     text-align: center;
 }
 
@@ -41,8 +42,8 @@ div{
     height: 40px;
     border-radius: 15px;
     outline:0;
-    border: 2px solid #ff32a2;
-    /* border-width: 0; */
+    /* border: 2px solid #ff32a2; */
+    border-width: 0;
     text-align: center;
 }
 
